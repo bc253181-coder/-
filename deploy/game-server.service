@@ -1,0 +1,17 @@
+# systemd 服务文件：让游戏服务器开机自启、崩溃自动重启
+# 使用：sudo cp game-server.service /etc/systemd/system/
+#       sudo systemctl daemon-reload && sudo systemctl enable --now game-server
+[Unit]
+Description=Online Board Game Server (TicTacToe / Connect Four)
+After=network.target
+
+[Service]
+# 改成你放 jar 的目录
+WorkingDirectory=/opt/game-server
+ExecStart=/usr/bin/java -Dstdout.encoding=UTF-8 -jar /opt/game-server/game-server.jar 5000
+Restart=always
+RestartSec=3
+User=nobody
+
+[Install]
+WantedBy=multi-user.target
