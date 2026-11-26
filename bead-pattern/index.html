@@ -71,13 +71,14 @@ details summary{cursor:pointer;font-weight:600;font-size:14px}
       </label>
 
       <label class="check" for="removeBg"><input id="removeBg" type="checkbox" checked> 去掉纯色背景（按四个角的颜色判断）</label>
+      <label class="check" for="smooth"><input id="smooth" type="checkbox" checked> 平滑杂点（照片、毛发推荐打开）</label>
       <label class="f" for="bgTol">背景判断宽松度
         <input id="bgTol" type="range" min="2" max="40" value="14">
       </label>
 
       <label class="f" for="palette">色卡
         <select id="palette">
-          <option value="default">内置示例色卡（48 色，色号为示例）</option>
+          <option value="default">内置示例色卡（58 色，色号为示例）</option>
           <option value="custom">我的色卡（在下方粘贴）</option>
         </select>
       </label>
@@ -175,7 +176,17 @@ S04,#C4835A
 S05,#8F5A3A
 S06,#5E3A26
 S07,#3D261A
-S08,#A8794F`;
+S08,#A8794F
+E01,#F1E8D8
+E02,#E6D6BC
+E03,#D8C2A0
+E04,#C9AD86
+E05,#B8976D
+E06,#A08060
+E07,#86694E
+E08,#DCD3C8
+E09,#BFB3A5
+E10,#9E9284`;
 
 const $ = id => document.getElementById(id);
 let srcImg = null, result = null, currentView = 'pattern';
@@ -274,6 +285,17 @@ function generate(){
     let least=null;for(const u of used)if(least===null||cnt[u]<cnt[least])least=u;
     used.delete(least);
     for(let i=0;i<assign.length;i++)if(assign[i]===least)assign[i]=nearest(labs[i],used);
+  }
+  // 平滑：一格周围 8 格里有 5 格以上是同一颜色，就改成那个颜色，重复两次
+  if($('smooth').checked){
+    for(let pass=0;pass<2;pass++){
+      const prev=assign.slice();
+      for(let j=0;j<H;j++)for(let i=0;i<W;i++){
+        const v=j*W+i;if(prev[v]<0)continue;const cnt={};
+        for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){if(!dx&&!dy)continue;const y=j+dy,x2=i+dx;if(y<0||y>=H||x2<0||x2>=W)continue;const a=prev[y*W+x2];if(a>=0)cnt[a]=(cnt[a]||0)+1;}
+        for(const a in cnt)if(cnt[a]>=5&&+a!==prev[v]){assign[v]=+a;break;}
+      }
+    }
   }
   const counts={};assign.forEach(a=>{if(a>=0)counts[a]=(counts[a]||0)+1;});
   result={W,H,assign,pal,counts};
